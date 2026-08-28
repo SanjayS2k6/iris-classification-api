@@ -1,17 +1,29 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from app.models.predictor import predict
+import numpy as np
+from fastapi import APIRouter, Request
 
 router = APIRouter()
 
 
-class IrisInput(BaseModel):
-    features: list[float]
-
-
 @router.post("/predict")
-def make_prediction(data: IrisInput):
-    prediction = predict(data.features)
+def predict(request: Request):
+
+    data = {
+        "sepal_length": 6.0,
+        "sepal_width": 2.9,
+        "petal_length": 4.5,
+        "petal_width": 1.5
+    }
+
+    features = np.array([[
+        data["sepal_length"],
+        data["sepal_width"],
+        data["petal_length"],
+        data["petal_width"]
+    ]])
+
+    model = request.app.state.model
+
+    prediction = model.predict(features)
 
     class_names = {
         0: "setosa",
@@ -19,6 +31,8 @@ def make_prediction(data: IrisInput):
         2: "virginica"
     }
 
+    predicted_class = int(prediction[0])
+
     return {
-        "prediction": class_names[int(prediction)]
+        "prediction": class_names[predicted_class]
     }
