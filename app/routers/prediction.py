@@ -1,24 +1,19 @@
 import numpy as np
 from fastapi import APIRouter, Request
 
+from app.models.schemas import PredictionInput
+
 router = APIRouter()
 
 
 @router.post("/predict")
-def predict(request: Request):
-
-    data = {
-        "sepal_length": 6.0,
-        "sepal_width": 2.9,
-        "petal_length": 4.5,
-        "petal_width": 1.5
-    }
+def predict(data: PredictionInput, request: Request):
 
     features = np.array([[
-        data["sepal_length"],
-        data["sepal_width"],
-        data["petal_length"],
-        data["petal_width"]
+        data.sepal_length,
+        data.sepal_width,
+        data.petal_length,
+        data.petal_width
     ]])
 
     model = request.app.state.model
