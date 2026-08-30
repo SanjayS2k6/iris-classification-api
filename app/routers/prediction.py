@@ -1,16 +1,20 @@
-import uuid
-
 import numpy as np
+
 from fastapi import APIRouter, HTTPException, Request
 
+from app.logging_config import setup_logging
 from app.models.exceptions import InvalidInputShapeError
 from app.models.schemas import PredictionInput, PredictionOutput
 
 router = APIRouter()
 
+logger = setup_logging()
+
 
 @router.post("/predict", response_model=PredictionOutput)
 def predict(data: PredictionInput, request: Request):
+
+    request_id = request.state.request_id
 
     features = np.array([[
         data.sepal_length,
@@ -30,13 +34,16 @@ def predict(data: PredictionInput, request: Request):
         confidence = float(probabilities.max())
 
     except Exception as e:
-        print(f"Prediction error: {e}")
+        logger.error(
+            f"prediction_failed "
+            f"request_id={request_id} "
+            f"error={e}"
+        )
+
         raise HTTPException(
             status_code=500,
             detail="Prediction failed"
         )
-
-    request_id = str(uuid.uuid4())
 
     class_names = {
         0: "setosa",
@@ -45,9 +52,16 @@ def predict(data: PredictionInput, request: Request):
     }
 
     predicted_class = int(prediction[0])
+    predicted_name = class_names[predicted_class]
+
+    logger.info(
+        f"prediction_success "
+        f"request_id={request_id} "
+        f"prediction={predicted_name}"
+    )
 
     return {
-        "prediction": class_names[predicted_class],
+        "prediction": predicted_name,
         "confidence": confidence,
         "model_version": "1.0",
         "request_id": request_id
