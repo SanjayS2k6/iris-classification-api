@@ -1,3 +1,5 @@
+import uuid
+
 import numpy as np
 from fastapi import APIRouter, Request
 
@@ -20,6 +22,11 @@ def predict(data: PredictionInput, request: Request):
 
     prediction = model.predict(features)
 
+    probabilities = model.predict_proba(features)
+    confidence = float(probabilities.max())
+
+    request_id = str(uuid.uuid4())
+
     class_names = {
         0: "setosa",
         1: "versicolor",
@@ -29,5 +36,18 @@ def predict(data: PredictionInput, request: Request):
     predicted_class = int(prediction[0])
 
     return {
-        "prediction": class_names[predicted_class]
+        "prediction": class_names[predicted_class],
+        "confidence": confidence,
+        "request_id": request_id
+    }
+
+
+@router.get("/health")
+def health(request: Request):
+
+    model_loaded = request.app.state.model is not None
+
+    return {
+        "status": "ok",
+        "model_loaded": model_loaded
     }
