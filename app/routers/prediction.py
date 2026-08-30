@@ -1,14 +1,15 @@
 import uuid
 
 import numpy as np
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 
-from app.models.schemas import PredictionInput
+from app.models.exceptions import InvalidInputShapeError
+from app.models.schemas import PredictionInput, PredictionOutput
 
 router = APIRouter()
 
 
-@router.post("/predict")
+@router.post("/predict", response_model=PredictionOutput)
 def predict(data: PredictionInput, request: Request):
 
     features = np.array([[
@@ -18,12 +19,22 @@ def predict(data: PredictionInput, request: Request):
         data.petal_width
     ]])
 
+    if features.shape != (1, 4):
+        raise InvalidInputShapeError()
+
     model = request.app.state.model
 
-    prediction = model.predict(features)
+    try:
+        prediction = model.predict(features)
+        probabilities = model.predict_proba(features)
+        confidence = float(probabilities.max())
 
-    probabilities = model.predict_proba(features)
-    confidence = float(probabilities.max())
+    except Exception as e:
+        print(f"Prediction error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Prediction failed"
+        )
 
     request_id = str(uuid.uuid4())
 
@@ -38,6 +49,7 @@ def predict(data: PredictionInput, request: Request):
     return {
         "prediction": class_names[predicted_class],
         "confidence": confidence,
+        "model_version": "1.0",
         "request_id": request_id
     }
 
