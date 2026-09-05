@@ -6,9 +6,6 @@ from app.routers.prediction import router as prediction_router
 router = APIRouter(prefix="/api/v1")
 
 
-@router.get("/health")
-def health():
-    return {"status": "healthy"}
 
 
 router.include_router(prediction_router)

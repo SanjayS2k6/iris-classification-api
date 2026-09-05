@@ -2,21 +2,25 @@ from pydantic import BaseModel, Field
 
 
 class PredictionInput(BaseModel):
+
     sepal_length: float = Field(
         ...,
         gt=0,
         description="Sepal length must be positive"
     )
+
     sepal_width: float = Field(
         ...,
         gt=0,
         description="Sepal width must be positive"
     )
+
     petal_length: float = Field(
         ...,
         gt=0,
         description="Petal length must be positive"
     )
+
     petal_width: float = Field(
         ...,
         gt=0,
@@ -25,7 +29,31 @@ class PredictionInput(BaseModel):
 
 
 class PredictionOutput(BaseModel):
+
     prediction: str
     confidence: float
     model_version: str
     request_id: str
+
+
+class BatchPredictionInput(BaseModel):
+
+    records: list[PredictionInput] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="List of 1 to 100 prediction records"
+    )
+
+
+class BatchPredictionOutput(BaseModel):
+
+    predictions: list[PredictionOutput]
+
+
+class ModelInfoOutput(BaseModel):
+
+    model_type: str
+    pipeline_steps: list[str]
+    classes: list[str]
+    model_version: str
