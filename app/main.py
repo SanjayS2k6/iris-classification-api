@@ -9,7 +9,8 @@ from fastapi.responses import JSONResponse
 
 from app.logging_config import setup_logging
 from app.models.exceptions import InvalidInputShapeError
-from app.routers import prediction
+
+from app.routers.v1 import router as v1_router
 
 
 logger = setup_logging()
@@ -64,4 +65,4 @@ async def invalid_input_shape_handler(
     )
 
 
-app.include_router(prediction.router)
+app.include_router(v1_router)
