@@ -108,3 +108,41 @@ def test_predict_batch_success():
 
         assert "predictions" in data
         assert len(data["predictions"]) == 2
+
+def test_v1_and_v2_predict_are_different():
+
+    payload = {
+        "sepal_length": 5.1,
+        "sepal_width": 3.5,
+        "petal_length": 1.4,
+        "petal_width": 0.2
+    }
+
+    with TestClient(app) as client:
+
+        v1_response = client.post(
+            "/api/v1/predict",
+            json=payload
+        )
+
+        v2_response = client.post(
+            "/api/v2/predict",
+            json=payload
+        )
+
+    assert v1_response.status_code == 200
+    assert v2_response.status_code == 200
+
+    v1_data = v1_response.json()
+    v2_data = v2_response.json()
+
+    # v1 contains confidence
+    assert "confidence" in v1_data
+    assert "probabilities" not in v1_data
+
+    # v2 contains probabilities
+    assert "probabilities" in v2_data
+    assert "confidence" not in v2_data
+
+
+    assert len(v2_data["probabilities"]) == 3

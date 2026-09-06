@@ -56,3 +56,10 @@ class ModelInfoOutput(BaseModel):
     pipeline_steps: list[str]
     classes: list[str]
     model_version: str
+
+class PredictionV2Output(BaseModel):
+
+    prediction: str
+    probabilities: dict[str, float]
+    model_version: str
+    request_id: str
