@@ -1,56 +1,85 @@
 # Iris Classification API
 
-A machine-learning REST API built with **Python, FastAPI, Pydantic, NumPy, and scikit-learn** to predict the species of an Iris flower from its four measurements.
-This project was developed as part of the **Fobes Skill Itech Python Internship** and progressively evolved from a basic ML prediction API into a validated and structured FastAPI service.
+A production-style Machine Learning REST API built using **Python, FastAPI, Pydantic, NumPy, Pandas, scikit-learn, Joblib, and Uvicorn**.
+
+This project was developed as part of the **Fobes Skill Itech Python Internship**. The application progressively evolved from a basic Iris classification API into a structured, validated, versioned, configurable, and automated-tested REST API.
+
+---
 
 ## Project Overview
-The API accepts four Iris flower measurements:
+
+The API accepts four measurements of an Iris flower:
+
 * Sepal length
 * Sepal width
 * Petal length
 * Petal width
-  
-The trained machine-learning model predicts one of three Iris species:
+
+The trained Machine Learning model predicts one of three Iris species:
+
 * Setosa
 * Versicolor
 * Virginica
-  
-The API also provides:
+
+The current implementation includes:
+
+* Real trained Machine Learning model
+* FastAPI REST API
 * Pydantic input validation
-* Model loading at application startup
-* Prediction confidence
-* Model version
-* Unique request IDs
-* Health monitoring
-* Error handling
+* Model loading during application startup
+* API versioning
+* Single prediction endpoint
+* Batch prediction endpoint
+* Model information endpoint
+* Health check endpoint
+* Environment-based configuration
+* Configurable batch-size limit
 * Structured logging
-* Rotating log-file support
-* 
-## Technologies Used
+* Request ID tracking
+* Error handling
+* Automated API testing with pytest
+* Breaking-change demonstration using API v2
 
-* **Python 3.13**
-* **FastAPI**
-* **Uvicorn**
-* **Pydantic**
-* **NumPy**
-* **Pandas**
-* **scikit-learn**
-* **Joblib**
-* **Python logging**
+---
 
-## Project Structure
+# Technologies Used
+
+* Python 3.13
+* FastAPI
+* Uvicorn
+* Pydantic
+* Pydantic Settings
+* NumPy
+* Pandas
+* scikit-learn
+* Joblib
+* pytest
+* httpx
+* Python Logging
+* Git
+* GitHub
+
+---
+
+# Project Structure
+
+```text
 iris-classification-api/
 │
 ├── app/
 │   ├── main.py
+│   ├── config.py
 │   ├── logging_config.py
 │   │
 │   ├── models/
 │   │   ├── schemas.py
-│   │   └── exceptions.py
+│   │   ├── exceptions.py
+│   │   └── predictor.py
 │   │
 │   └── routers/
-│       └── prediction.py
+│       ├── prediction.py
+│       ├── v1.py
+│       └── v2.py
 │
 ├── ml/
 │   ├── train.py
@@ -59,28 +88,64 @@ iris-classification-api/
 │       └── model.joblib
 │
 ├── tests/
+│   └── test_api.py
 │
+├── .env.example
+├── .gitignore
 ├── README.md
-├── requirements.txt
-└── .gitignore
+└── requirements.txt
 ```
-The `logs/` directory is generated at runtime and is ignored by Git.
-# How to Run the Project
-## 1. Clone or download the repository
+
+The `.env` file is intentionally not committed to GitHub. Use `.env.example` to create your local configuration.
+
+---
+
+# Machine Learning Model
+
+The project uses the **Iris dataset** and a scikit-learn classification pipeline.
+
+The trained model is stored at:
+
+```text
+ml/saved_model/model.joblib
+```
+
+The model is loaded once when the FastAPI application starts using the FastAPI lifespan mechanism.
+
+This avoids loading the model from disk for every API request.
+
+The model predicts:
+
+```text
+0 → setosa
+1 → versicolor
+2 → virginica
+```
+
+---
+
+# Setup Instructions
+
+## 1. Clone the Repository
+
 ```bash
 git clone https://github.com/SanjayS2k6/iris-classification-api.git
 ```
-Then enter the project directory:
+
+Move into the project directory:
+
 ```bash
 cd iris-classification-api
 ```
+
 ---
 
-## 2. Create a virtual environment
+## 2. Create a Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
+
 ### Windows Command Prompt
 
 ```cmd
@@ -89,21 +154,29 @@ python -m venv .venv
 
 ### Windows PowerShell
 
-If PowerShell blocks script execution, use:
+If PowerShell blocks script execution:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
-Then:
+
+Then activate:
+
 ```powershell
 .venv\Scripts\activate
 ```
+
 After activation, the terminal should show:
 
 ```text
 (.venv)
+```
 
-## 3. Install dependencies
+---
+
+## 3. Install Dependencies
+
+Install all project dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -111,44 +184,91 @@ pip install -r requirements.txt
 
 ---
 
-## 4. Start the FastAPI server
+# Configuration
 
-Run:
+The application uses environment variables through **Pydantic Settings**.
+
+Create a `.env` file in the project root.
+
+Example:
+
+```env
+MODEL_VERSION=1.0
+MAX_BATCH_SIZE=100
+```
+
+The repository contains `.env.example` as a template.
+
+```text
+.env
+```
+
+is excluded from Git to avoid committing local configuration.
+
+### Configuration Variables
+
+| Variable         | Default | Description                                           |
+| ---------------- | ------: | ----------------------------------------------------- |
+| `MODEL_VERSION`  |   `1.0` | Version returned by the API                           |
+| `MAX_BATCH_SIZE` |   `100` | Maximum number of records allowed in batch prediction |
+
+---
+
+# Running the Application
+
+Start the FastAPI server using:
 
 ```bash
 python -m uvicorn app.main:app --reload
 ```
 
-Expected output:
+The API will be available at:
 
 ```text
-Uvicorn running on http://127.0.0.1:8000
+http://127.0.0.1:8000
+```
+
+Expected startup message:
+
+```text
 Application startup complete.
 ```
 
-The trained model should also be loaded during application startup.
+The trained model is loaded during application startup.
 
 ---
 
 # API Documentation
 
-Once the server is running, open:
+FastAPI automatically provides interactive Swagger documentation.
+
+Open:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-FastAPI's Swagger UI will display the available endpoints.
+You can use Swagger UI to test all API endpoints without requiring an additional API client.
 
 ---
 
-# API Endpoints
+# API Version 1
+
+Version 1 provides the original prediction response contract.
+
+Base path:
+
+```text
+/api/v1
+```
 
 ## 1. Health Check
 
-### GET `/health`
+### GET
 
-Checks whether the API is running and whether the trained model has been loaded.
+```text
+/api/v1/health
+```
 
 Example response:
 
@@ -167,93 +287,236 @@ Expected status:
 
 ---
 
-## 2. Prediction
+## 2. Single Prediction
 
-### POST `/predict`
-
-Accepts the four Iris measurements and returns the predicted species.
-
-### Example Request
-
-```json
-{
-  "sepal_length": 6.0,
-  "sepal_width": 2.9,
-  "petal_length": 4.5,
-  "petal_width": 1.5
-}
-```
-
-### Example Response
-
-```json
-{
-  "prediction": "versicolor",
-  "confidence": 0.7594441366930891,
-  "model_version": "1.0",
-  "request_id": "786f8258-4242-4437-a6b1-e31c174f34d3"
-}
-```
-
-The exact prediction and confidence may vary depending on the input values.
-
-Expected status:
+### POST
 
 ```text
-200 OK
+/api/v1/predict
 ```
+
+Example request:
+
+```json
+{
+  "sepal_length": 5.1,
+  "sepal_width": 3.5,
+  "petal_length": 1.4,
+  "petal_width": 0.2
+}
+```
+
+Example response:
+
+```json
+{
+  "prediction": "setosa",
+  "confidence": 0.98,
+  "model_version": "1.0",
+  "request_id": "unique-request-id"
+}
+```
+
+The exact confidence value depends on the input and trained model.
 
 ---
 
-# Input Validation
+## 3. Batch Prediction
 
-The `/predict` endpoint uses a Pydantic `PredictionInput` model.
+### POST
 
-The API validates:
+```text
+/api/v1/predict-batch
+```
 
-* Required feature fields
-* Numeric input types
-* Defined validation constraints
+Example request:
 
-Invalid requests are rejected before they reach the machine-learning model.
+```json
+{
+  "records": [
+    {
+      "sepal_length": 5.1,
+      "sepal_width": 3.5,
+      "petal_length": 1.4,
+      "petal_width": 0.2
+    },
+    {
+      "sepal_length": 6.0,
+      "sepal_width": 2.9,
+      "petal_length": 4.5,
+      "petal_width": 1.5
+    }
+  ]
+}
+```
 
-For example, missing or invalid fields result in:
+The API performs prediction for the complete batch using the trained model.
+
+The maximum batch size is controlled through:
+
+```env
+MAX_BATCH_SIZE=100
+```
+
+Requests exceeding the configured limit return:
 
 ```text
 422 Unprocessable Entity
 ```
 
-This prevents malformed input from causing unexpected model errors.
+---
+
+## 4. Model Information
+
+### GET
+
+```text
+/api/v1/model-info
+```
+
+Returns information about the loaded Machine Learning model.
+
+Example:
+
+```json
+{
+  "model_type": "Pipeline",
+  "pipeline_steps": [
+    "scaler",
+    "classifier"
+  ],
+  "classes": [
+    "setosa",
+    "versicolor",
+    "virginica"
+  ],
+  "model_version": "1.0"
+}
+```
 
 ---
 
-# Machine Learning Model
+# API Version 2
 
-The trained model is stored at:
+Version 2 demonstrates how a breaking API response change can be introduced without breaking existing v1 clients.
 
-```text
-ml/saved_model/model.joblib
-```
-
-The model is loaded **once during FastAPI application startup** using the application's lifespan mechanism.
-
-The prediction endpoint then reuses the already-loaded model instead of loading the model from disk for every request.
-
-The model predicts:
+Base path:
 
 ```text
-0 → setosa
-1 → versicolor
-2 → virginica
+/api/v2
 ```
+
+## V2 Prediction
+
+### POST
+
+```text
+/api/v2/predict
+```
+
+Example request:
+
+```json
+{
+  "sepal_length": 5.1,
+  "sepal_width": 3.5,
+  "petal_length": 1.4,
+  "petal_width": 0.2
+}
+```
+
+Example response:
+
+```json
+{
+  "prediction": "setosa",
+  "probabilities": {
+    "setosa": 0.98,
+    "versicolor": 0.01,
+    "virginica": 0.01
+  },
+  "model_version": "1.0",
+  "request_id": "unique-request-id"
+}
+```
+
+---
+
+# Why API Versioning?
+
+The v1 response contains:
+
+```text
+confidence
+```
+
+while v2 provides:
+
+```text
+probabilities
+```
+
+For example:
+
+```text
+v1
+↓
+confidence: 0.98
+```
+
+```text
+v2
+↓
+probabilities:
+    setosa: 0.98
+    versicolor: 0.01
+    virginica: 0.01
+```
+
+Changing the existing v1 response could break applications that already depend on the `confidence` field.
+
+Therefore, the breaking change was introduced through:
+
+```text
+/api/v2/predict
+```
+
+This allows existing v1 clients to continue working while new clients can use the improved v2 response.
+
+---
+
+# Input Validation
+
+The API uses Pydantic models to validate incoming requests.
+
+The following fields are required:
+
+```text
+sepal_length
+sepal_width
+petal_length
+petal_width
+```
+
+Each measurement must be a positive numeric value.
+
+Invalid requests are rejected before reaching the Machine Learning model.
+
+Example:
+
+```text
+422 Unprocessable Entity
+```
+
+This protects the model from malformed input.
 
 ---
 
 # Error Handling
 
-The API uses controlled error handling for unexpected prediction failures.
+The application uses controlled error handling.
 
-If model inference fails, the client receives a safe response such as:
+Unexpected prediction failures return a safe response:
 
 ```json
 {
@@ -267,40 +530,74 @@ with:
 500 Internal Server Error
 ```
 
-Internal Python errors are logged for debugging instead of exposing raw tracebacks to the API client.
+Internal error details are logged for debugging rather than exposed directly to API clients.
 
-A custom exception handler is also used for invalid model input-shape situations.
+A custom exception handler is also implemented for invalid model input shapes.
+
+---
+
+# Environment Configuration
+
+Application configuration is managed using:
+
+```text
+app/config.py
+```
+
+The project uses:
+
+```text
+pydantic-settings
+```
+
+Configuration values are loaded from:
+
+```text
+.env
+```
+
+Example:
+
+```env
+MODEL_VERSION=1.0
+MAX_BATCH_SIZE=100
+```
+
+This avoids hard-coding environment-specific values directly into the application code.
 
 ---
 
 # Structured Logging
 
-The application uses Python's `logging` module instead of `print()` statements.
+The application uses Python's `logging` framework.
 
-Logging is configured in:
+Logging configuration is maintained in:
 
 ```text
 app/logging_config.py
 ```
 
-Logs are written to:
+The application records important information such as:
 
-* Console
-* Rotating log file
+* Request ID
+* HTTP method
+* Endpoint path
+* HTTP status code
+* Request duration
+* Prediction result
+* Prediction errors
+* Batch size
+* Batch processing duration
 
-Runtime logs are stored under:
+Runtime logs are stored in the `logs/` directory when configured by the application.
 
-```text
-logs/app.log
-```
-
-The `logs/` directory is excluded from Git using `.gitignore`.
+The `logs/` directory is excluded from Git.
 
 ---
 
-## Request Tracking
+# Request ID Tracking
 
-A unique UUID request ID is generated by FastAPI middleware for every request.
+Every HTTP request receives a unique UUID.
 
 The request ID is stored using:
 
@@ -308,27 +605,9 @@ The request ID is stored using:
 request.state.request_id
 ```
 
-This allows the same request to be traced across middleware and prediction logs.
+The same ID is included in API responses and application logs.
 
-Example:
-
-```text
-prediction_success request_id=f95c2b31-2e48-416f-b678-604e881969e3 prediction=versicolor
-
-request_id=f95c2b31-2e48-416f-b678-604e881969e3 method=POST path=/predict status_code=200 duration=0.0462s
-```
-
-The logs contain:
-
-* Timestamp
-* Log level
-* Request ID
-* HTTP method
-* Endpoint
-* Status code
-* Request duration
-* Prediction result
-* Prediction errors
+This makes it easier to trace a request from the API client through the application.
 
 ---
 
@@ -336,181 +615,343 @@ The logs contain:
 
 ```text
 Client
-   │
-   ▼
-FastAPI Middleware
-   │
-   ├── Generate Request ID
-   ├── Record request details
-   │
-   ▼
-POST /predict
-   │
-   ▼
-Pydantic Validation
-   │
-   ├── Invalid → 422 Response
-   │
-   ▼
-Prepare Feature Array
-   │
-   ▼
+  │
+  ▼
+FastAPI
+  │
+  ▼
+Request ID Middleware
+  │
+  ├── Generate Request ID
+  ├── Start Request Timer
+  │
+  ▼
+API Version Router
+  │
+  ├───────────────┐
+  │               │
+  ▼               ▼
+  V1              V2
+  │               │
+  ▼               ▼
+Pydantic        Pydantic
+Validation      Validation
+  │               │
+  ▼               ▼
+Feature Preparation
+  │
+  ▼
 Loaded ML Model
-   │
-   ▼
-Prediction + Confidence
-   │
-   ▼
-Structured Logging
-   │
-   ▼
-PredictionOutput
-   │
-   ▼
+  │
+  ├── Prediction
+  └── Probability
+  │
+  ▼
+Response Model
+  │
+  ▼
 JSON Response
+  │
+  ▼
+Structured Logging
 ```
 
 ---
 
-# Testing
+# Automated Testing
 
-The application was tested from a fresh copy of the GitHub repository.
-
-The following tests were successfully performed:
-
-| Endpoint   | Test                             | Result              |
-| ---------- | -------------------------------- | ------------------- |
-| `/docs`    | Open Swagger documentation       | 200 OK              |
-| `/health`  | Check model status               | 200 OK              |
-| `/predict` | Valid Iris input                 | 200 OK              |
-| `/predict` | Invalid input                    | 422                 |
-| `/predict` | Deliberately invalid model shape | 500 with safe error |
-| Middleware | Request ID and duration logging  | Passed              |
-| Logging    | Console and file logging         | Passed              |
-
-Example successful server log:
+The project includes automated API tests using:
 
 ```text
-Model loaded successfully.
-
-request_id=ea7d4eee-067d-4783-afb5-349ec3a5f490
-method=GET
-path=/health
-status_code=200
-duration=0.0029s
+pytest
 ```
 
-Example prediction log:
+Test file:
 
 ```text
-prediction_success
-request_id=f350c72f-29f3-4508-8c72-a130c210b0fb
-prediction=setosa
+tests/test_api.py
 ```
 
----
+The test suite covers:
 
-# Phase 2 Task Completion
+* Health endpoint
+* Successful prediction
+* Invalid input
+* Oversized batch request
+* Model information endpoint
+* Successful batch prediction
+* v1 and v2 prediction response differences
 
-### Task 5 — Load the Real Trained Model
+Run all tests with:
 
-* Model loaded once during application startup
-* `/predict` uses the real trained model
-* Real predictions returned
+```bash
+python -m pytest
+```
 
-**Status: Completed**
-
-### Task 6 — Pydantic Input Validation
-
-* `PredictionInput` schema created
-* Input validation implemented
-* Invalid requests return HTTP 422
-
-**Status: Completed**
-
-### Task 7 — Assemble the Core Working API
-
-* `/predict` rebuilt using the validated input
-* Prediction and confidence returned
-* Request ID implemented
-* `/health` endpoint added
-
-**Status: Completed**
-
-### Task 8 — Response Models, Status Codes, and Error Handling
-
-* `PredictionOutput` response model implemented
-* Controlled HTTP 500 errors implemented
-* Custom exception handler implemented
-* Raw Python errors are not exposed to clients
-
-**Status: Completed**
-
-### Task 9 — Structured Logging
-
-* Dedicated logging configuration implemented
-* Console logging implemented
-* Rotating file logging implemented
-* FastAPI middleware implemented
-* Request IDs implemented
-* Prediction success/error logging implemented
-* `print()` statements removed from `app/`
-
-**Status: Completed**
-
----
-
-# Key Learning Outcomes
-
-Through this project, I learned how to:
-
-* Build a REST API using FastAPI
-* Load a trained machine-learning model into an API
-* Use FastAPI lifespan for startup model loading
-* Validate API input using Pydantic
-* Return structured API responses
-* Handle HTTP errors safely
-* Create custom exception handlers
-* Build health-check endpoints
-* Generate and track request IDs
-* Implement FastAPI middleware
-* Use Python's logging framework
-* Write logs to console and rotating files
-* Test APIs using Swagger UI
-* Run a FastAPI project from a clean environment
-* Manage Python dependencies using `requirements.txt`
-* Use Git and GitHub for project version control
-
----
-
-# Repository
-
-GitHub Repository:
-
-https://github.com/SanjayS2k6/iris-classification-api
-
----
-
-# Important Note
-
-The API is a local FastAPI application by default.
-
-After starting the server, the API is available at:
+Expected result:
 
 ```text
-http://127.0.0.1:8000
+7 passed
 ```
 
-Swagger documentation:
+The project also intentionally verified that an incorrect expectation causes a test failure and then restored the correct expectation.
+
+This demonstrates that the test suite can detect an actual API contract change.
+
+---
+
+# Phase 3 Task Completion
+
+## Task 10 — API Versioning
+
+Implemented:
+
+* `/api/v1` router
+* Versioned prediction endpoint
+* Versioned health endpoint
+* Existing API behavior preserved under v1
+
+**Status: Completed**
+
+---
+
+## Task 11 — Multiple Endpoints
+
+Implemented:
+
+* `/api/v1/predict`
+* `/api/v1/predict-batch`
+* `/api/v1/model-info`
+* Batch prediction using a single model call
+* Configurable batch-size limit
+* Batch processing duration logging
+
+**Status: Completed**
+
+---
+
+## Task 12 — Environment Configuration
+
+Implemented:
+
+* `pydantic-settings`
+* `.env` configuration
+* `.env.example`
+* `MODEL_VERSION`
+* `MAX_BATCH_SIZE`
+* `.env` excluded from Git
+
+**Status: Completed**
+
+---
+
+## Task 13 — Automated Testing
+
+Implemented:
+
+* pytest test suite
+* At least six API tests
+* Successful endpoint tests
+* Validation/error tests
+* Batch-size test
+* Model information test
+* Intentional test failure verification
+* Restored passing test suite
+
+Final test result:
+
+```text
+7 passed
+```
+
+**Status: Completed**
+
+---
+
+## Task 14 — Breaking `/api/v2` Change
+
+Implemented:
+
+* `/api/v2/predict`
+* Separate v2 response schema
+* Full class probability distribution
+* v1 and v2 available simultaneously
+* Automated test comparing v1 and v2
+* Intentional breaking-change test verification
+
+### v1
+
+```text
+confidence
+```
+
+### v2
+
+```text
+probabilities
+```
+
+**Status: Completed**
+
+---
+
+# Verification Checklist
+
+Before submitting or demonstrating the project, perform the following checks:
+
+### 1. Activate environment
+
+```cmd
+.venv\Scripts\activate
+```
+
+### 2. Install dependencies
+
+```cmd
+pip install -r requirements.txt
+```
+
+### 3. Check configuration
+
+Create `.env`:
+
+```env
+MODEL_VERSION=1.0
+MAX_BATCH_SIZE=100
+```
+
+### 4. Run tests
+
+```cmd
+python -m pytest
+```
+
+Expected:
+
+```text
+7 passed
+```
+
+### 5. Start server
+
+```cmd
+python -m uvicorn app.main:app --reload
+```
+
+### 6. Open Swagger
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-Health check:
+### 7. Verify v1
 
 ```text
-http://127.0.0.1:8000/health
+POST /api/v1/predict
 ```
 
-The API must be started locally before these endpoints can be accessed.
+### 8. Verify batch API
+
+```text
+POST /api/v1/predict-batch
+```
+
+### 9. Verify model information
+
+```text
+GET /api/v1/model-info
+```
+
+### 10. Verify health
+
+```text
+GET /api/v1/health
+```
+
+### 11. Verify v2
+
+```text
+POST /api/v2/predict
+```
+
+---
+
+# Expected Final Test
+
+A clean environment should be able to:
+
+```text
+Clone Repository
+      ↓
+Create Virtual Environment
+      ↓
+Install requirements.txt
+      ↓
+Create .env
+      ↓
+Run pytest
+      ↓
+7 tests pass
+      ↓
+Start Uvicorn
+      ↓
+Application startup complete
+      ↓
+Open Swagger UI
+      ↓
+Test v1 and v2 endpoints
+```
+
+---
+
+# Git Version Control
+
+The project is maintained using Git and GitHub.
+
+Repository:
+
+https://github.com/SanjayS2k6/iris-classification-api
+
+The completed Phase 3 work is committed and pushed to the `main` branch.
+
+---
+
+# Key Learning Outcomes
+
+Through this phase, I learned how to:
+
+* Build and structure REST APIs using FastAPI
+* Version REST APIs
+* Maintain backward compatibility
+* Design breaking API changes
+* Create multiple API endpoints
+* Implement batch prediction
+* Configure applications using environment variables
+* Use Pydantic Settings
+* Write automated API tests using pytest
+* Test API validation and error handling
+* Detect breaking changes through automated tests
+* Load and reuse a trained ML model
+* Implement structured logging
+* Track requests using unique request IDs
+* Manage dependencies using `requirements.txt`
+* Use Git and GitHub for version control
+* Document a complete API project
+
+---
+
+# Current Project Status
+
+```text
+Phase 3
+│
+├── Task 10  → API Versioning              ✅
+├── Task 11  → Multiple Endpoints         ✅
+├── Task 12  → Environment Configuration  ✅
+├── Task 13  → Automated Testing          ✅
+└── Task 14  → Breaking /api/v2 Change    ✅
+```
+
+**Phase 3 Tasks Completed: 10–14**
+
+The project is ready for the next phase of development.
