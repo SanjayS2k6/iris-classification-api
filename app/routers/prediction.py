@@ -4,6 +4,7 @@ import numpy as np
 
 from fastapi import APIRouter, HTTPException, Request
 
+from app.config import settings
 from app.logging_config import setup_logging
 from app.models.exceptions import InvalidInputShapeError
 from app.models.schemas import (
@@ -72,7 +73,7 @@ def predict(data: PredictionInput, request: Request):
     return {
         "prediction": predicted_name,
         "confidence": confidence,
-        "model_version": "1.0",
+        "model_version": settings.model_version,
         "request_id": request_id
     }
 
@@ -90,6 +91,13 @@ def predict_batch(
     start_time = time.perf_counter()
 
     request_id = request.state.request_id
+
+    # Check maximum batch size from environment configuration
+    if len(data.records) > settings.max_batch_size:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Maximum batch size is {settings.max_batch_size}"
+        )
 
     features = np.array([
         [
@@ -144,7 +152,7 @@ def predict_batch(
         results.append({
             "prediction": predicted_name,
             "confidence": confidence,
-            "model_version": "1.0",
+            "model_version": settings.model_version,
             "request_id": request_id
         })
 
@@ -175,7 +183,7 @@ def model_info(request: Request):
         "model_type": type(model).__name__,
         "pipeline_steps": list(model.named_steps.keys()),
         "classes": list(model.class_names),
-        "model_version": model.model_version
+        "model_version": settings.model_version
     }
 
 
@@ -188,4 +196,3 @@ def health(request: Request):
         "status": "ok",
         "model_loaded": model_loaded
     }
-
