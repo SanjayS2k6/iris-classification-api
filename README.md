@@ -952,6 +952,11 @@ Phase 3
 └── Task 14  → Breaking /api/v2 Change    ✅
 ```
 
-**Phase 3 Tasks Completed: 10–14**
+## Docker Compose
 
-The project is ready for the next phase of development.
+### Start the API
+
+Build the Docker image and start the API using Docker Compose:
+
+```bash
+docker compose up --build
