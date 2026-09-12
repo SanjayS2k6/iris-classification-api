@@ -2,8 +2,9 @@ import time
 
 import numpy as np
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from app.auth import verify_api_key
 from app.config import settings
 from app.logging_config import setup_logging
 from app.models.exceptions import InvalidInputShapeError
@@ -16,7 +17,10 @@ from app.models.schemas import (
 )
 
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(verify_api_key)]
+)
+
 
 logger = setup_logging()
 

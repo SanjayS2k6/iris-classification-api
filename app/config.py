@@ -5,6 +5,7 @@ class Settings(BaseSettings):
 
     model_version: str = "1.0"
     max_batch_size: int = 100
+    api_key: str
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -13,4 +14,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-

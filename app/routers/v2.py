@@ -1,10 +1,16 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 import numpy as np
 
+from app.auth import verify_api_key
 from app.config import settings
 from app.models.exceptions import InvalidInputShapeError
 from app.models.schemas import PredictionInput, PredictionV2Output
 
+
+router = APIRouter(
+    prefix="/api/v2",
+    dependencies=[Depends(verify_api_key)]
+)
 
 router = APIRouter(prefix="/api/v2")
 
