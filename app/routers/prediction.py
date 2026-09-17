@@ -1,7 +1,7 @@
 import time
 
 import numpy as np
-
+from prometheus_client import Counter
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.auth import verify_api_key
@@ -23,6 +23,14 @@ router = APIRouter(
 
 
 logger = setup_logging()
+
+
+# Custom ML metric
+prediction_counter = Counter(
+    "ml_predictions_total",
+    "Total number of successful ML predictions",
+    ["class"]
+)
 
 
 @router.post("/predict", response_model=PredictionOutput)
@@ -67,6 +75,9 @@ def predict(data: PredictionInput, request: Request):
 
     predicted_class = int(prediction[0])
     predicted_name = class_names[predicted_class]
+
+    # Increment custom ML metric
+    prediction_counter.labels(predicted_name).inc()
 
     logger.info(
         f"prediction_success "

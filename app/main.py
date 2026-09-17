@@ -1,7 +1,7 @@
 import time
 import uuid
 from contextlib import asynccontextmanager
-
+from prometheus_fastapi_instrumentator import Instrumentator
 import joblib
 
 from fastapi import FastAPI, Request
@@ -80,3 +80,4 @@ async def invalid_input_shape_handler(
 
 app.include_router(v1_router)
 app.include_router(v2_router)
+Instrumentator().instrument(app).expose(app)
