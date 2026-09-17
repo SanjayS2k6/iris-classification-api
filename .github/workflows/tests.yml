@@ -12,6 +12,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      API_KEY: test-api-key
+      MODEL_VERSION: "1.0"
+      MAX_BATCH_SIZE: "100"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,4 +32,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run pytest
-        run: pytest
+        run: pytest tests
