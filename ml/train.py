@@ -36,7 +36,6 @@ y_pred = model.predict(X_test)
 
 accuracy = accuracy_score(y_test, y_pred)
 
-print(f"Model accuracy: {accuracy:.2f}")
 
 
 model.model_version = "1.0"
@@ -51,4 +50,3 @@ joblib.dump(
     "ml/saved_model/model.joblib"
 )
 
-print("Model saved successfully.")

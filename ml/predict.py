@@ -14,4 +14,3 @@ class_names = {
     2: "virginica"
 }
 
-print("Prediction:", class_names[int(prediction)])
